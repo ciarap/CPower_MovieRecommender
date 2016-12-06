@@ -10,7 +10,7 @@ public interface IMovieRecommender {
 	void addUser(String firstName,String lastName,int age,String gender,String occupation);
 	void removeUser(Long userID);
 	void addMovie(String title, String year,String url);
-	void addRating(Long userID, Long movieID, Rating rating);
+	void addRating(Long userID, Long movieID, Long rating);
 	Movie getMovie(Long movieID);
 	Rating getUserRatings(Long userID);
 	ArrayList<Movie> getUserRecommendations(Long userID);
@@ -21,4 +21,5 @@ public interface IMovieRecommender {
 	Map<Long, User> getUsers();
 	void removeMovie(Long movieID);
 	Map<Long, Movie> getMovies();
+	ArrayList<Rating> getRatings();
 }

@@ -15,6 +15,7 @@ public class MovieRecommenderAPI implements IMovieRecommender {
 
 	private Map<Long, User> userIndex = new HashMap<>();
 	private Map<Long, Movie> movieIndex = new HashMap<>();
+	private ArrayList<Rating> ratingIndex = new ArrayList<>();
 	private Serializer serializer;
 	
 	public MovieRecommenderAPI(Serializer serializer) {
@@ -65,8 +66,8 @@ public class MovieRecommenderAPI implements IMovieRecommender {
 	}
 
 	@Override
-	public void addRating(Long userID, Long movieID, Rating rating) {
-		// TODO Auto-generated method stub
+	public void addRating(Long userID, Long movieID, Long rating) {
+		ratingIndex.add(new Rating(userID,movieID,rating));
 		
 	}
 
@@ -98,6 +99,11 @@ public class MovieRecommenderAPI implements IMovieRecommender {
 	public Map<Long, Movie> getMovies() {
 		
 		return movieIndex;
+	}
+	@Override
+	public ArrayList<Rating> getRatings() {
+		
+		return ratingIndex;
 	}
 	
 	@Override
@@ -180,6 +186,31 @@ public void readFileMovies(String fileName) throws Exception{
         System.out.println(entry.getValue().toString());
     }
     System.out.println("Counter: "+Movie.counter);
+}
+
+public void readFileRatings(String fileName) throws Exception{
+	File ratingsFile = new File(fileName);
+    In inRatings = new In(ratingsFile);
+      //each field is separated(delimited) by a '|'
+    String delims = "[|]";
+    while (!inRatings.isEmpty()) {
+        // get rating and rating from data source
+        String ratingDetails = inRatings.readLine();
+
+        // parse rating details string
+        String[] ratingTokens = ratingDetails.split(delims);
+
+        // output user data to console.
+        if (ratingTokens.length == 4) {
+            addRating(Long.parseLong(ratingTokens[0]),Long.parseLong(ratingTokens[1]),Long.parseLong(ratingTokens[2]));
+        }else
+        {
+            throw new Exception("Invalid member length: "+ratingTokens.length);
+        }
+}
+    for (Rating entry : ratingIndex) {
+        System.out.println(entry.toString());
+    }
 }
 
 }

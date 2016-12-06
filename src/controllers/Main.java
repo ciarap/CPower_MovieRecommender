@@ -8,6 +8,7 @@ import asg.cliche.Param;
 import asg.cliche.Shell;
 import asg.cliche.ShellFactory;
 import models.Movie;
+import models.Rating;
 import models.User;
 import utils.Serializer;
 import utils.XMLSerializer;
@@ -26,6 +27,7 @@ public class Main
 	    }
 	likeMovies.readFileUsers("movieData/users5.dat");
 	likeMovies.readFileMovies("movieData/items5.dat");
+	likeMovies.readFileRatings("movieData/ratings5.dat");
 
  }
  
@@ -70,6 +72,14 @@ public class Main
       System.out.println(entry.getValue().toString());
   }
   System.out.println("Counter: "+Movie.counter);
+ }
+ 
+ @Command(description="List Ratings")
+ public void listRatings() 
+ {
+	 for (Rating entry : likeMovies.getRatings()) {
+	        System.out.println(entry.toString());
+	    }
  }
   
  public static void main(String[] args) throws Exception
