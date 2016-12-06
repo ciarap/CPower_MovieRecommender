@@ -13,8 +13,8 @@ import utils.Serializer;
 
 public class MovieRecommenderAPI implements IMovieRecommender {
 
-	private Map<String, User> userIndex = new HashMap<>();
-	private Map<Integer, Movie> movieIndex = new HashMap<>();
+	private Map<Long, User> userIndex = new HashMap<>();
+	private Map<Long, Movie> movieIndex = new HashMap<>();
 	private Serializer serializer;
 	
 	public MovieRecommenderAPI(Serializer serializer) {
@@ -22,46 +22,84 @@ public class MovieRecommenderAPI implements IMovieRecommender {
 	}
 
 	@Override
-	public void addUser(String id,String firstName, String lastName, int age, String gender, String occupation) {
+	public void addUser(Long id,String firstName, String lastName, int age, String gender, String occupation) {
 		userIndex.put(id, new User(id,firstName,lastName,age,gender,occupation));
 	}
+	@Override
+	public void addUser(String firstName, String lastName, int age, String gender, String occupation) {
+		User user=new User(firstName,lastName,age,gender,occupation);
+		userIndex.put(user.getId(), user);
+	}
 
 	@Override
-	public void removeUser(int userID) {
+	public void removeUser(Long userID) {
+		if(userIndex.containsKey(userID)){
+			userIndex.remove(userID);
+			User.counter--;
+		}	
+		else{
+			System.out.println("There are no users with this ID");
+		}
+	}
+
+	@Override
+	public void addMovie(String title, String year, String url) {
+		Movie movie=new Movie(title,year,url);
+		movieIndex.put(movie.getId(),movie);
+		
+	}
+	@Override
+	public void addMovie(Long id,String title,String year, String url) {
+		movieIndex.put(id, new Movie(id,title,year,url));
+	}
+
+	@Override
+	public void removeMovie(Long movieID) {
+		if(movieIndex.containsKey(movieID)){
+			movieIndex.remove(movieID);
+			Movie.counter--;
+		}	
+		else{
+			System.out.println("There are no users with this ID");
+		}
+	}
+
+	@Override
+	public void addRating(Long userID, Long movieID, Rating rating) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void addMovie(String title, int year, String url) {
+	public Movie getMovie(Long movieID) {
 		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Rating getUserRatings(Long userID) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ArrayList<Movie> getUserRecommendations(Long userID) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	public Map<Long, User> getUsers() {
 		
+		return userIndex;
 	}
 
 	@Override
-	public void addRating(int userID, int movieID, Rating rating) {
-		// TODO Auto-generated method stub
+	public Map<Long, Movie> getMovies() {
 		
+		return movieIndex;
 	}
-
-	@Override
-	public Movie getMovie(int movieID) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Rating getUserRatings(int userID) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ArrayList<Movie> getUserRecommendations(int userID) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
+	
 	@Override
 	public ArrayList<Movie> getTopTenMovies() {
 		// TODO Auto-generated method stub
@@ -72,14 +110,20 @@ public class MovieRecommenderAPI implements IMovieRecommender {
 	@Override
 	public void load() throws Exception {
 		serializer.read();
-	    userIndex = (Map<String, User>)     serializer.pop();	
+	    movieIndex = (Map<Long, Movie>)     serializer.pop();	
+	    userIndex = (Map<Long, User>)     serializer.pop();
+	    Movie.counter = (Long) serializer.pop();
+	    User.counter = (Long) serializer.pop();
 	}
 
 	@Override
 	public void write() throws Exception {
+		serializer.push(User.counter);
+		serializer.push(Movie.counter);
 		serializer.push(userIndex);
-	//    serializer.push(movieIndex);
+	    serializer.push(movieIndex);
 	    serializer.write(); 
+	    
 	}
 
 
@@ -97,23 +141,45 @@ public void readFileUsers(String fileName) throws Exception{
 
         // output user data to console.
         if (userTokens.length == 7) {
-            System.out.println("UserID: "+userTokens[0]+",First Name:"+
-                    userTokens[1]+",Surname:" + userTokens[2]+",Age:"+
-                    Integer.parseInt(userTokens[3])+",Gender:"+userTokens[4]+",Occupation:"+
-                    userTokens[5]);
-        addUser(userTokens[0],userTokens[1],userTokens[2],Integer.parseInt(userTokens[3]),userTokens[4],userTokens[5]);
+        addUser(Long.parseLong(userTokens[0]),userTokens[1],userTokens[2],Integer.parseInt(userTokens[3]),userTokens[4],userTokens[5]);
         }
-        else if (userTokens.length == 23) {
-            System.out.println("UserID: "+userTokens[0]+",First Name:"+
-                    userTokens[1]+",Surname:" + userTokens[2]);
-        }else
+       else
         {
             throw new Exception("Invalid member length: "+userTokens.length);
         }
 }
-    for (Map.Entry<String, User> entry : userIndex.entrySet()) {
+    for (Map.Entry<Long, User> entry : userIndex.entrySet()) {
         System.out.println(entry.getValue().toString());
     }
+    System.out.println("Counter: "+User.counter);
+}
+
+
+
+public void readFileMovies(String fileName) throws Exception{
+	File moviesFile = new File(fileName);
+    In inMovies = new In(moviesFile);
+      //each field is separated(delimited) by a '|'
+    String delims = "[|]";
+    while (!inMovies.isEmpty()) {
+        // get movie and rating from data source
+        String movieDetails = inMovies.readLine();
+
+        // parse movie details string
+        String[] movieTokens = movieDetails.split(delims);
+
+        // output user data to console.
+        if (movieTokens.length == 23) {
+            addMovie(Long.parseLong(movieTokens[0]),movieTokens[1],movieTokens[2],movieTokens[3]);
+        }else
+        {
+            throw new Exception("Invalid member length: "+movieTokens.length);
+        }
+}
+    for (Map.Entry<Long, Movie> entry : movieIndex.entrySet()) {
+        System.out.println(entry.getValue().toString());
+    }
+    System.out.println("Counter: "+Movie.counter);
 }
 
 }

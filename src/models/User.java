@@ -6,7 +6,7 @@ import java.util.Objects;
 
 public class User {
 
-	static Long counter = 0l;
+	public static Long counter = 0l;
 	private Long id;
 	private String firstName;
 	private String lastName;
@@ -26,7 +26,8 @@ public class User {
 	}
 	 public User(String firstName, String lastName,int age, String gender,  String occupation)
 	 {
-	 this.id = counter++;
+	 counter++;
+	 this.id = counter;
 	 this.firstName = firstName;
 	 this.lastName = lastName;
 	 this.gender = gender;
@@ -39,7 +40,11 @@ public class User {
 	public void setId(Long id) {
 		this.id = id;
 	}
-	
+	@Override
+	public String toString() {
+		return "User [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + ", age=" + age + ", gender="
+				+ gender + ", occupation=" + occupation + "]";
+	}
 	public String getFirstName() {
 		return firstName;
 	}
@@ -70,16 +75,6 @@ public class User {
 	public void setOccupation(String occupation) {
 		this.occupation = occupation;
 	}
-	 public String toString()
-	 {
-	 return new ToJsonString(getClass(), this).toString();
-	 }
-
-	 @Override
-	 public int hashCode()
-	 {
-	 return Objects.hashCode(this.lastName, this.firstName, this.gender, this.age);
-	 }
 
 	 @Override
 	 public boolean equals(final Object obj)
@@ -87,15 +82,16 @@ public class User {
 	 if (obj instanceof User)
 	 {
 	 final User other = (User) obj;
-	 return Objects.equal(firstName, other.firstName)
-	 && Objects.equal(lastName, other.lastName)
-	 && Objects.equal(gender, other.gender)
-	 && Objects.equal(age, other.age)
-	 && Objects.equal(occupation, other.occupation)
-	 && Objects.equal(ratings, other.ratings);
+	 return Objects.equals(firstName, other.firstName)
+	 && Objects.equals(lastName, other.lastName)
+	 && Objects.equals(gender, other.gender)
+	 && Objects.equals(age, other.age)
+	 && Objects.equals(occupation, other.occupation)
+	 && Objects.equals(ratings, other.ratings);
 	 }
 	 else
 	 {
 	 return false;
 	 }
+}
 }
