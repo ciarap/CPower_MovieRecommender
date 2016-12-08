@@ -1,13 +1,27 @@
 package models;
 
-public class Movie {
+import java.util.ArrayList;
+import java.util.List;
+
+public  class Movie implements Comparable<Movie> {
 	public static Long counter= 0l;
 	private Long id;
      private String title;
      private String year;
      private String url;
+     private List<Rating> ratings = new ArrayList<Rating>();
      
      
+	public List<Rating> getRatings() {
+		return ratings;
+	}
+
+
+	public void setRatings(List<Rating> ratings) {
+		this.ratings = ratings;
+	}
+
+
 	public String getTitle() {
 		return title;
 	}
@@ -40,7 +54,7 @@ public class Movie {
 
 	@Override
 	public String toString() {
-		return "Movie [title=" + title + ", year=" + year + ", url=" + url + "]";
+		return "Movie [id="+id+", title=" + title + ", year=" + year + ", url=" + url + "]";
 	}
 
 
@@ -67,5 +81,28 @@ public class Movie {
 	}
 
 
-	
+	public void addRating(Rating newRating) {
+		ratings.add(newRating);
+		
+	}
+
+   @Override
+	public int compareTo(Movie that) {
+		return Double.compare(this.getAverageRating(),that.getAverageRating());
+	}
+
+
+	private double getAverageRating() {
+		double sum=0.0;
+		if(ratings.size()>0){
+		for(Rating entry: ratings){
+			sum+=entry.getRating();
+		}
+		return sum/ratings.size();
+		}
+		else{
+			return 0.0;
+		}
+	}
+
 }

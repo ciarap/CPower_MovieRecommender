@@ -14,8 +14,14 @@ public class User {
 	private String gender;
 	private String occupation;
 	
-	 public List<Rating> ratings = new ArrayList<>();
+	 private List<Rating> ratings = new ArrayList<>();
 	 
+	public List<Rating> getRatings() {
+		return ratings;
+	}
+	public void setRatings(List<Rating> ratings) {
+		this.ratings = ratings;
+	}
 	public User(Long id,String firstName, String lastName, int age, String gender, String occupation) {
 		this.id= id;
 		this.firstName = firstName;
@@ -94,4 +100,8 @@ public class User {
 	 return false;
 	 }
 }
+	public void addRating(Rating newRating) {
+		ratings.add(newRating);
+		
+	}
 }

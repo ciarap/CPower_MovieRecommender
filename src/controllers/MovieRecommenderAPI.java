@@ -2,7 +2,10 @@ package controllers;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import edu.princeton.cs.introcs.In;
@@ -61,32 +64,46 @@ public class MovieRecommenderAPI implements IMovieRecommender {
 			Movie.counter--;
 		}	
 		else{
-			System.out.println("There are no users with this ID");
+			System.out.println("There are no movies with this ID");
 		}
 	}
 
 	@Override
-	public void addRating(Long userID, Long movieID, Long rating) {
-		ratingIndex.add(new Rating(userID,movieID,rating));
+	public void addRating(Long userID, Long movieID, int rating) {
+		Rating newRating=new Rating(userID,movieID,rating);
+		ratingIndex.add(newRating);
+		if(movieIndex.containsKey(movieID)){
+			for (Map.Entry<Long, Movie> entry : movieIndex.entrySet()){
+				if (entry.getKey()==movieID){
+					entry.getValue().addRating(newRating);
+				}
+			}
+		}
+		if(userIndex.containsKey(userID)){
+			for (Map.Entry<Long, User> entry : userIndex.entrySet()){
+				if (entry.getKey()==userID){
+					entry.getValue().addRating(newRating);
+				}
+			}
+		}
 		
 	}
 
 	@Override
 	public Movie getMovie(Long movieID) {
-		// TODO Auto-generated method stub
-		return null;
+		return movieIndex.get(movieID);
 	}
 
 	@Override
-	public Rating getUserRatings(Long userID) {
-		// TODO Auto-generated method stub
-		return null;
+	public List<Rating> getUserRatings(Long userID) {
+		return userIndex.get(userID).getRatings();
+		
 	}
 
 	@Override
 	public ArrayList<Movie> getUserRecommendations(Long userID) {
-		// TODO Auto-generated method stub
 		return null;
+		
 	}
 	
 	@Override
@@ -107,9 +124,16 @@ public class MovieRecommenderAPI implements IMovieRecommender {
 	}
 	
 	@Override
-	public ArrayList<Movie> getTopTenMovies() {
-		// TODO Auto-generated method stub
-		return null;
+	public List<Movie> getTopTenMovies() {
+		ArrayList<Movie> movies= new ArrayList<>(movieIndex.values());
+		Collections.sort(movies);
+		Collections.reverse(movies);
+		if(movies.size()>10){
+		return movies.subList(0, 10);
+	}
+	else{
+		return movies;
+	}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -118,6 +142,7 @@ public class MovieRecommenderAPI implements IMovieRecommender {
 		serializer.read();
 	    movieIndex = (Map<Long, Movie>)     serializer.pop();	
 	    userIndex = (Map<Long, User>)     serializer.pop();
+	    ratingIndex=(ArrayList<Rating>) serializer.pop();
 	    Movie.counter = (Long) serializer.pop();
 	    User.counter = (Long) serializer.pop();
 	}
@@ -126,6 +151,7 @@ public class MovieRecommenderAPI implements IMovieRecommender {
 	public void write() throws Exception {
 		serializer.push(User.counter);
 		serializer.push(Movie.counter);
+		serializer.push(ratingIndex);
 		serializer.push(userIndex);
 	    serializer.push(movieIndex);
 	    serializer.write(); 
@@ -139,6 +165,7 @@ public void readFileUsers(String fileName) throws Exception{
       //each field is separated(delimited) by a '|'
     String delims = "[|]";
     while (!inUsers.isEmpty()) {
+    	
         // get user and rating from data source
         String userDetails = inUsers.readLine();
 
@@ -157,6 +184,7 @@ public void readFileUsers(String fileName) throws Exception{
     for (Map.Entry<Long, User> entry : userIndex.entrySet()) {
         System.out.println(entry.getValue().toString());
     }
+    User.counter= (long) userIndex.size();
     System.out.println("Counter: "+User.counter);
 }
 
@@ -168,6 +196,7 @@ public void readFileMovies(String fileName) throws Exception{
       //each field is separated(delimited) by a '|'
     String delims = "[|]";
     while (!inMovies.isEmpty()) {
+    	
         // get movie and rating from data source
         String movieDetails = inMovies.readLine();
 
@@ -185,6 +214,7 @@ public void readFileMovies(String fileName) throws Exception{
     for (Map.Entry<Long, Movie> entry : movieIndex.entrySet()) {
         System.out.println(entry.getValue().toString());
     }
+    Movie.counter= (long) movieIndex.size();
     System.out.println("Counter: "+Movie.counter);
 }
 
@@ -194,6 +224,7 @@ public void readFileRatings(String fileName) throws Exception{
       //each field is separated(delimited) by a '|'
     String delims = "[|]";
     while (!inRatings.isEmpty()) {
+    	
         // get rating and rating from data source
         String ratingDetails = inRatings.readLine();
 
@@ -202,7 +233,7 @@ public void readFileRatings(String fileName) throws Exception{
 
         // output user data to console.
         if (ratingTokens.length == 4) {
-            addRating(Long.parseLong(ratingTokens[0]),Long.parseLong(ratingTokens[1]),Long.parseLong(ratingTokens[2]));
+            addRating(Long.parseLong(ratingTokens[0]),Long.parseLong(ratingTokens[1]),Integer.parseInt(ratingTokens[2]));
         }else
         {
             throw new Exception("Invalid member length: "+ratingTokens.length);
@@ -211,6 +242,26 @@ public void readFileRatings(String fileName) throws Exception{
     for (Rating entry : ratingIndex) {
         System.out.println(entry.toString());
     }
+}
+ 
+@Override
+public void listMovieRatings(Long id) {
+	for (Rating entry: movieIndex.get(id).getRatings()){
+		System.out.println(entry.toString());
+	}
+	
+}
+
+@Override
+public String getMovieDetails(String title) {
+	String details="There are no movies with this title";
+	for (Movie entry: movieIndex.values()){
+		if(entry.getTitle().equalsIgnoreCase(title)){
+			details=entry.toString();
+		}
+		
+	}
+	return details;
 }
 
 }

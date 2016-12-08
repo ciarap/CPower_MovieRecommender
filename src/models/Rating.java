@@ -3,14 +3,14 @@ package models;
 public class Rating {
 	private Long userID;
 	private Long movieID;
-	private Long rating;
+	private int rating;
 	public Long getUserID() {
 		return userID;
 	}
 	public void setUserID(Long userID) {
 		this.userID = userID;
 	}
-	public Rating(Long userID, Long movieID, Long rating) {
+	public Rating(Long userID, Long movieID, int rating) {
 		this.userID = userID;
 		this.movieID = movieID;
 		this.rating = rating;
@@ -25,10 +25,10 @@ public class Rating {
 	public void setMovieID(Long movieID) {
 		this.movieID = movieID;
 	}
-	public Long getRating() {
+	public int getRating() {
 		return rating;
 	}
-	public void setRating(Long rating) {
+	public void setRating(int rating) {
 		this.rating = rating;
 	}
 	

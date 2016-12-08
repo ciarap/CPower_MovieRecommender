@@ -1,6 +1,7 @@
 package controllers;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import models.*;
@@ -10,11 +11,11 @@ public interface IMovieRecommender {
 	void addUser(String firstName,String lastName,int age,String gender,String occupation);
 	void removeUser(Long userID);
 	void addMovie(String title, String year,String url);
-	void addRating(Long userID, Long movieID, Long rating);
+	void addRating(Long userID, Long movieID, int rating);
 	Movie getMovie(Long movieID);
-	Rating getUserRatings(Long userID);
+	List<Rating> getUserRatings(Long userID);
 	ArrayList<Movie> getUserRecommendations(Long userID);
-	ArrayList<Movie> getTopTenMovies();
+	List<Movie> getTopTenMovies();
 	void load() throws Exception;
 	void write() throws Exception;
 	void addMovie(Long id, String title, String year, String url);
@@ -22,4 +23,6 @@ public interface IMovieRecommender {
 	void removeMovie(Long movieID);
 	Map<Long, Movie> getMovies();
 	ArrayList<Rating> getRatings();
+	void listMovieRatings(Long id);
+	String getMovieDetails(String title);
 }
