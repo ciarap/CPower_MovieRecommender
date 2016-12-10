@@ -1,6 +1,6 @@
 package models;
 
-public class Rating {
+public class Rating implements Comparable<Rating> {
 	private Long userID;
 	private Long movieID;
 	private int rating;
@@ -30,6 +30,10 @@ public class Rating {
 	}
 	public void setRating(int rating) {
 		this.rating = rating;
+	}
+	@Override
+	public int compareTo(Rating that) {
+		return Double.compare(this.getRating(),that.getRating());
 	}
 	
 }

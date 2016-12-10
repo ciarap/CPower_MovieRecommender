@@ -104,4 +104,5 @@ public class User {
 		ratings.add(newRating);
 		
 	}
+	
 }

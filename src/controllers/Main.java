@@ -2,6 +2,7 @@ package controllers;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import asg.cliche.Command;
@@ -11,6 +12,7 @@ import asg.cliche.ShellFactory;
 import models.Movie;
 import models.Rating;
 import models.User;
+import utils.CSVLoader;
 import utils.Serializer;
 import utils.XMLSerializer;
 
@@ -27,14 +29,32 @@ public class Main
 	      likeMovies.load();
 	    }
 	  else{
-	likeMovies.readFileUsers("movieData/users5.dat");
-	likeMovies.readFileMovies("movieData/items5.dat");
-	likeMovies.readFileRatings("movieData/ratings5.dat");
-	likeMovies.write();
+	  CSVLoader loader = new CSVLoader();
+	  List <User> users = loader.loadUsers("movieDataLong/assign2/data_movieLens/users.dat");  // SHORT DATA: "movieData/users5.dat"
+	  for (User user : users)
+	  {
+	  likeMovies.addUser(user);
 	  }
-
+	  List <Movie> movies = loader.loadMovies("movieDataLong/assign2/data_movieLens/items.dat");  // SHORT DATA: "movieData/items5.dat"
+	  for (Movie movie : movies)
+	  {
+	  likeMovies.addMovie(movie);
+	  }
+	  List <Rating> ratings = loader.loadRatings("movieDataLong/assign2/data_movieLens/ratings.dat");  // SHORT DATA: "movieData/ratings5.dat"
+	  for (Rating rating:ratings)
+	  {
+	  likeMovies.addRating(rating);
+	  }
+ }
  }
  
+@Command (description="Load data")
+public void prime() throws Exception
+{
+load();
+}
+
+
  @Command(description="Add a new User")
  public void addUser (@Param(name="first name") String firstName, @Param(name="last name") String lastName,
  @Param(name="age")int age, @Param(name="gender") String gender, @Param(name="occupation") String occupation)
@@ -53,6 +73,7 @@ public class Main
  {
  likeMovies.addMovie(title, year, url);
  }
+ 
  @Command(description="Add a Rating")
  public void addRating (@Param(name="userID") Long userID, @Param(name="movieID") Long movieID, @Param(name="rating") int rating)
  {
@@ -65,7 +86,7 @@ public class Main
  likeMovies.removeMovie(id);
  }
  
- @Command(description="Get Movie Details")
+ @Command(description="Get Movie Details By Title")
  public void getMovieDetails (@Param(name="title") String title)
  {
   System.out.println(likeMovies.getMovieDetails(title));
@@ -74,37 +95,42 @@ public class Main
  @Command(description="List Users")
  public void listUsers() 
  {
+	 Map<Long,User> users= likeMovies.getUsers();
+	  if (users.isEmpty()){
+		  System.out.println("There are no users yet");
+	  }
+	  else{
   for (Map.Entry<Long, User> entry :  likeMovies.getUsers().entrySet()) {
       System.out.println(entry.getValue().toString());
   }
-  System.out.println("Counter: "+User.counter);
+	  }
  }
  
  @Command(description="List Movies")
  public void listMovies() 
  {
-  if (likeMovies.getMovies().isEmpty()){
-	  System.out.println("There are no movies");
+  Map<Long,Movie> movies= likeMovies.getMovies();
+  if (movies.isEmpty()){
+	  System.out.println("There are no movies yet");
   }
   else{
-  for (Map.Entry<Long, Movie> entry :  likeMovies.getMovies().entrySet()) {
+  for (Map.Entry<Long, Movie> entry :  movies.entrySet()) {
       System.out.println(entry.getValue().toString());
   }
   }
-  System.out.println("Counter: "+Movie.counter);
  }
  
  @Command(description="List Top TenMovies")
  public void listTopTenMovies() 
  {
-  ArrayList<Movie> topMovies=new ArrayList<>(likeMovies.getTopTenMovies());
-  if(topMovies.size()>0){
+  List<Movie> topMovies=likeMovies.getTopTenMovies();
+  if(topMovies!=null){
   for(Movie entry:topMovies){
 	  System.out.println(entry.toString());
   }
   }
   else{
-	  System.out.println("There are no top movies");
+	  System.out.println("There are no top movies, please add some ratings for this feature!");
   }
   
  }
@@ -112,34 +138,75 @@ public class Main
  @Command(description="List Ratings")
  public void listRatings() 
  {
-	 for (Rating entry : likeMovies.getRatings()) {
+	 List<Rating> ratings=likeMovies.getRatings();
+		if(ratings.size()==0){
+			System.out.println("There are no ratings yet");
+		}
+		else{
+	 for (Rating entry : ratings) {
 	        System.out.println(entry.toString());
 	    }
+		}
  }
  
  @Command(description="List Ratings for a Movie")
  public void listMovieRatings (@Param(name="id") Long id)
  {
-	likeMovies.listMovieRatings(id);
+	 List<Rating> ratings=likeMovies.getMovieRatings(id);
+	 if(ratings==null){
+			System.out.println("There are no movies with this ID");
+	 }
+	 else if(ratings.size()==0){
+			System.out.println("There are no ratings for this movie");
+		}
+		else{
+		for(Rating rating: ratings){
+			System.out.println(rating.toString());
+		}
+		}
+	
  }
  
  @Command(description="List Ratings for a User")
  public void listUserRatings (@Param(name="id") Long id)
  {
-	for(Rating rating: likeMovies.getUserRatings(id)){
+	List<Rating> ratings=likeMovies.getUserRatings(id);
+	if(ratings==null){
+		System.out.println("There are no users with this ID");
+ }
+ else if(ratings.size()==0){
+		System.out.println("There are no ratings for this user");
+	}
+	else{
+	for(Rating rating: ratings){
 		System.out.println(rating.toString());
+	}
 	}
  }
  
  @Command (description="List recommendations for a User")
  public void listUserRecommendations (@Param(name="id") Long id){
-	 likeMovies.getUserRecommendations(id);
+	 
+	 if(likeMovies.getUserRecommendations(id)!=null){
+	 for(Movie entry:likeMovies.getUserRecommendations(id)){
+		 System.out.println(entry.toString());
+	 }
+	 }
+ }
+ 
+ @Command (description="Give Average Rating for a Movie")
+ public void getAverageRating (@Param(name="id") Long id){
+	 likeMovies.getAverageRating(id);
+ }
+ 
+ @Command (description="Get specific rating")
+ public void getRating (@Param(name="userID") Long userID,@Param(name="movieID") Long movieID){
+	 likeMovies.getRating(userID, movieID);
  }
   
  public static void main(String[] args) throws Exception
  {
  Main main = new Main();
- main.load();
  Shell shell = ShellFactory.createConsoleShell("lm", "Welcome to likemovie - ?help for instructions", main);
  shell.commandLoop();
  main.save();

@@ -1,9 +1,10 @@
 package models;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
-public  class Movie implements Comparable<Movie> {
+public  class Movie  implements Comparable<Movie>{
 	public static Long counter= 0l;
 	private Long id;
      private String title;
@@ -86,13 +87,8 @@ public  class Movie implements Comparable<Movie> {
 		
 	}
 
-   @Override
-	public int compareTo(Movie that) {
-		return Double.compare(this.getAverageRating(),that.getAverageRating());
-	}
 
-
-	private double getAverageRating() {
+	public double getAverageRating() {
 		double sum=0.0;
 		if(ratings.size()>0){
 		for(Rating entry: ratings){
@@ -103,6 +99,10 @@ public  class Movie implements Comparable<Movie> {
 		else{
 			return 0.0;
 		}
+	}
+	@Override
+	public int compareTo(Movie that) {
+	 return Double.compare(this.getAverageRating(),that.getAverageRating());
 	}
 
 }
