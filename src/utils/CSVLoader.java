@@ -28,7 +28,7 @@ public List<User>  loadUsers(String fileName) throws Exception{
         // parse user details string
         String[] userTokens = userDetails.split(delims);
 
-        // output user data to console.
+        
         if (userTokens.length == 7) {
         users.add(new User(Long.parseLong(userTokens[0]),userTokens[1],userTokens[2],Integer.parseInt(userTokens[3]),userTokens[4],userTokens[5]));
         }
@@ -54,13 +54,13 @@ public List<Movie> loadMovies(String fileName) throws Exception{
     String delims = "[|]";
     while (!inMovies.isEmpty()) {
     	
-        // get movie and rating from data source
+        // get movie from data source
         String movieDetails = inMovies.readLine();
 
         // parse movie details string
         String[] movieTokens = movieDetails.split(delims);
 
-        // output user data to console.
+        // add movie
         if (movieTokens.length == 23) {
             movies.add(new Movie(Long.parseLong(movieTokens[0]),movieTokens[1],movieTokens[2],movieTokens[3]));
         }else
@@ -90,7 +90,7 @@ public List<Rating> loadRatings(String fileName) throws Exception{
 		// parse rating details string
 		String[] ratingTokens = ratingDetails.split(delims);
 
-		// output user data to console.
+		
 		if (ratingTokens.length == 4) {
 			ratings.add(new Rating(Long.parseLong(ratingTokens[0]),Long.parseLong(ratingTokens[1]),Integer.parseInt(ratingTokens[2])));
 		}else

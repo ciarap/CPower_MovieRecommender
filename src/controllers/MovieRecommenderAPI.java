@@ -1,17 +1,11 @@
 package controllers;
 
-import java.io.File;
-import java.lang.Math;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import edu.princeton.cs.introcs.In;
 import models.Movie;
 import models.Rating;
 import models.User;
@@ -29,23 +23,23 @@ public class MovieRecommenderAPI implements IMovieRecommender{
 
 	@Override
 	public void addUser(User user) {
-		userIndex.put(user.getId(), user);
+		userIndex.put(user.getId(), user); //id was created when user initialised
 	}
 	@Override
 	public void addUser(String firstName, String lastName, int age, String gender, String occupation) {
-		User user=new User(firstName,lastName,age,gender,occupation);
+		User user=new User(firstName,lastName,age,gender,occupation);  //create user first to get the id for map key
 		userIndex.put(user.getId(), user);
 	}
 
 	@Override
 	public void removeUser(Long userID) {
-		if(userIndex.containsKey(userID)){
+		if(userIndex.containsKey(userID)){  //user must exist
 			userIndex.remove(userID);
-			for(Movie movie: movieIndex.values()){
+			for(Movie movie: movieIndex.values()){      //for each movie,if it contains rating by user then delete
 				for(int j=0;j<movie.getRatings().size();j++){
 					if(movie.getRatings().get(j).getUserID()==userID){
 						movie.getRatings().remove(j);
-						j--;
+						break;  //only one rating per user for a movie
 					}
 				}
 			}
@@ -57,7 +51,7 @@ public class MovieRecommenderAPI implements IMovieRecommender{
 
 	@Override
 	public void addMovie(String title, String year, String url) {
-		Movie movie=new Movie(title,year,url);
+		Movie movie=new Movie(title,year,url);  //create first to get id for map key
 		movieIndex.put(movie.getId(),movie);
 
 	}
@@ -68,13 +62,13 @@ public class MovieRecommenderAPI implements IMovieRecommender{
 
 	@Override
 	public void removeMovie(Long movieID) {
-		if(movieIndex.containsKey(movieID)){
+		if(movieIndex.containsKey(movieID)){  //movie must exist
 			movieIndex.remove(movieID);
-			for(User user: userIndex.values()){
+			for(User user: userIndex.values()){      //delete any user ratings that correspond
 				for(int j=0;j<user.getRatings().size();j++){
 					if(user.getRatings().get(j).getMovieID()==movieID){
 						user.getRatings().remove(j);
-						j--;
+						break; //only one  rating per movie per user
 					}
 				}
 			}
@@ -88,68 +82,50 @@ public class MovieRecommenderAPI implements IMovieRecommender{
 	public void addRating(Long userID, Long movieID, int rating) {
 		Rating newRating=new Rating(userID,movieID,rating);
 		boolean alreadyRated=false;
-		if(movieIndex.containsKey(movieID)){
-			for (Map.Entry<Long, Movie> entry : movieIndex.entrySet()){
-				if (entry.getKey().equals(movieID)){
-					for(Rating movieRating:entry.getValue().getRatings()){
-						if(userID.equals(movieRating.getUserID())){
+		if(movieIndex.containsKey(movieID)&& userIndex.containsKey(userID)){  //movie and user must exist
+			Movie movie=movieIndex.get(movieID);
+					for(Rating movieRating:movie.getRatings()){  //go through each rating
+						if(userID.equals(movieRating.getUserID())){  //if user has already rated this movie
 							alreadyRated=true;
-							break;
+							break;    //only one rating per user per movie
 						}
 					}
-					if(userIndex.containsKey(userID) && !alreadyRated){
-					entry.getValue().addRating(newRating);
+					if( !alreadyRated){    //if user hasnt rated this movie
+					movie.addRating(newRating);
+					userIndex.get(userID).addRating(newRating);    //add rating to the user ratings
+				}
+					else{
+						System.out.println("This user has already rated this movie");
 					}
-					break;
-				}
-			}
-		
-		if(userIndex.containsKey(userID) && !alreadyRated){
-			for (Map.Entry<Long, User> entry : userIndex.entrySet()){
-				if (entry.getKey().equals(userID)){
-					entry.getValue().addRating(newRating);
-				}
-			}
+			
 		}
 		else if(!userIndex.containsKey(userID)){
 			System.out.println("There are no users with this id!");
 		}
-		else{
-			System.out.println("This user has already rated this movie");
-		}
-		}
-		else{
+		else if(!movieIndex.containsKey(movieID)){
 			System.out.println("There are no movies with this id!");
 		}
-
-	}
+		
+		}
 
 	@Override
 	public void addRating(Rating rating) {
-			for (Map.Entry<Long, Movie> entry : movieIndex.entrySet()){
-				if (entry.getKey().equals(rating.getMovieID())){
-					entry.getValue().addRating(rating);
-					}
-			}
-			for (Map.Entry<Long, User> entry : userIndex.entrySet()){
-				if (entry.getKey().equals(rating.getUserID())){
-					entry.getValue().addRating(rating);
-				}
-			}
+					movieIndex.get(rating.getMovieID()).addRating(rating);
+					userIndex.get(rating.getUserID()).addRating(rating);
 		}
 
 	@Override 
 	public void removeRating(Long userID,Long movieID){
 		if (movieIndex.containsKey(movieID) && userIndex.containsKey(userID)){
 			boolean movieRatingExists=false;
-			for(int i=0;i<movieIndex.get(movieID).getRatings().size();i++){
+			for(int i=0;i<movieIndex.get(movieID).getRatings().size();i++){    
 				if(userID==movieIndex.get(movieID).getRatings().get(i).getUserID()){
 					movieIndex.get(movieID).getRatings().remove(i);
 					movieRatingExists=true;
 					break;
 				}
 			}
-			if(movieRatingExists){
+			if(movieRatingExists){  //if it exists we search and remove from the user
 			for(int i=0;i<userIndex.get(userID).getRatings().size();i++){
 				if(movieID==userIndex.get(userID).getRatings().get(i).getMovieID()){
 					userIndex.get(userID).getRatings().remove(i);
@@ -187,10 +163,19 @@ public class MovieRecommenderAPI implements IMovieRecommender{
 		}
 	}
 	
-	@Override    //method to return a list of ratings for a movie 
+	@Override    //method to return  a movie 
 	public Movie getMovie(Long movieID) {
 		if(movieIndex.containsKey(movieID)){  //movie must exist
 		return movieIndex.get(movieID);
+		}
+		else{
+			return null;
+		}
+	}
+	@Override    //method to return a user details
+	public User getUser(Long userID) {
+		if(userIndex.containsKey(userID)){  //user must exist
+		return userIndex.get(userID);
 		}
 		else{
 			return null;
@@ -213,8 +198,6 @@ public class MovieRecommenderAPI implements IMovieRecommender{
 		ArrayList<Movie> recommendations=new ArrayList<Movie>();
 		User user = userIndex.get(userID);   //user we want recommendations for
 		if(!getRatings().isEmpty() && !user.getRatings().isEmpty() ){  //ratings must exist, and the user must have ratings (because if no user ratings then cant find similar user)
-			User smallest=user;   //variable for smallest user (based on no. ratings)
-			User largest=user;    //as above but for largest   , both set to user as base 
 			int highestSum= Integer.MIN_VALUE;   //most similar user will have high number for this variable, set to min starting so the first user number found will be set as the highest
 			User closestUser=user;   //most similar user set to user as base
 			for (User entry:userIndex.values()){    //for every user

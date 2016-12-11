@@ -1,7 +1,6 @@
 package controllers;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -50,5 +49,7 @@ public interface IMovieRecommender {
 	String getAverageRating(Long id);
 
 	void removeRating(Long userID, Long movieID);
+
+	User getUser(Long userID);
 	
 }

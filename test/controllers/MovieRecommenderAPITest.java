@@ -82,9 +82,9 @@ public class MovieRecommenderAPITest {
 		
 		assertEquals(1,likeMovies.getUserRatings(3l).size());
 		assertEquals(1,likeMovies.getMovieRatings(3l).size());
-		likeMovies.removeUser(2l);
-		assertEquals(0,likeMovies.getMovieRatings(2l).size()); //the movie rated by this user now has no ratings
-		assertEquals(3,likeMovies.getRatings().size()); //the user ratings were removed from total ratings 
+		likeMovies.removeUser(3l);
+		assertEquals(0,likeMovies.getMovieRatings(3l).size()); //the movie rated by this user now has no ratings
+		assertEquals(4,likeMovies.getRatings().size()); //the user ratings were removed from total ratings 
 		assertEquals(3,likeMovies.getUsers().size(),0.001);
 		assertEquals(4,User.counter,0.001);   // does not get decremented, because if we delete user in middle 
 		                                      //of index of 5,we still need the next user id to be 6,not 5 (user 5 still exists) 
@@ -182,6 +182,11 @@ public class MovieRecommenderAPITest {
 	public void testGetMovie(){
 		assertEquals(movies[0],likeMovies.getMovie(1l)); //valid id
 		assertNull(likeMovies.getMovie(4433l));   //id doesnt exist
+	}
+	@Test
+	public void testGetUser(){
+		assertEquals(users[0],likeMovies.getUser(1l)); //valid id
+		assertNull(likeMovies.getUser(4433l));   //id doesnt exist
 	}
 	
 	@Test

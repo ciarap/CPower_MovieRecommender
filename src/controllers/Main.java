@@ -22,6 +22,16 @@ public class Main
 	public  Serializer serializer = new XMLSerializer(datastore);
 	public  MovieRecommenderAPI likeMovies= new MovieRecommenderAPI(serializer);
 
+	
+	public static void main(String[] args) throws Exception
+	{
+		Main main = new Main();
+		Shell shell = ShellFactory.createConsoleShell("lm", "Welcome to likemovie - ?help for instructions", main);
+		shell.commandLoop();
+		main.save();
+
+	}
+	
 	public void load () throws Exception{
 
 		if (datastore.isFile())
@@ -96,6 +106,18 @@ public class Main
 		}
 		else{
 			System.out.println(likeMovies.getMovie(id).toString());
+		}
+	}
+	
+	@Command(description="Get User")  //print out movie details by id
+	public void getUser(@Param(name="id") Long id)
+	{
+		User user=likeMovies.getUser(id);
+		if(user==null){   //no user returned
+           System.out.println("This user does not exist");
+		}
+		else{
+			System.out.println(likeMovies.getUser(id).toString());
 		}
 	}
 
@@ -206,10 +228,10 @@ public class Main
 		System.out.println(likeMovies.getAverageRating(id));
 	}
 
-	@Command (description="Get specific rating")
+	@Command (description="Get specific rating") //list  the details of a rating for a specific user and movie
 	public void getRating (@Param(name="userID") Long userID,@Param(name="movieID") Long movieID){
 		String result=likeMovies.getRating(userID, movieID);
-		if(result==null){
+		if(result==null){  //if no user or movie exist with those ids
 			System.out.println("These IDs do not correspond to existing users/movies");
 		}
 		else{
@@ -217,14 +239,6 @@ public class Main
 		}
 	}
 
-	public static void main(String[] args) throws Exception
-	{
-		Main main = new Main();
-		Shell shell = ShellFactory.createConsoleShell("lm", "Welcome to likemovie - ?help for instructions", main);
-		shell.commandLoop();
-		main.save();
-
-	}
 	public void save() throws Exception{
 		likeMovies.write();
 	}
