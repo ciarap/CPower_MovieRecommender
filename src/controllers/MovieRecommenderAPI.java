@@ -138,29 +138,68 @@ public class MovieRecommenderAPI implements IMovieRecommender{
 			}
 		}
 
-	
 	@Override 
-	public void getRating(Long userID,Long movieID){
-		String result="";
-		for(int i=0;i<userIndex.get(userID).getRatings().size();i++){
-			Rating rating=userIndex.get(userID).getRatings().get(i);
-			if(movieID.equals(rating.getMovieID())){
-				result+=rating.toString();
+	public void removeRating(Long userID,Long movieID){
+		if (movieIndex.containsKey(movieID) && userIndex.containsKey(userID)){
+			boolean movieRatingExists=false;
+			for(int i=0;i<movieIndex.get(movieID).getRatings().size();i++){
+				if(userID==movieIndex.get(movieID).getRatings().get(i).getUserID()){
+					movieIndex.get(movieID).getRatings().remove(i);
+					movieRatingExists=true;
+					break;
+				}
+			}
+			if(movieRatingExists){
+			for(int i=0;i<userIndex.get(userID).getRatings().size();i++){
+				if(movieID==userIndex.get(userID).getRatings().get(i).getMovieID()){
+					userIndex.get(userID).getRatings().remove(i);
+					break;
+				}
+			}
+			}
+			if(!movieRatingExists){
+				System.out.println("There were no ratings for this user/movie combination");
 			}
 		}
-		if (result.equals("")){
+		else{
+			System.out.println("These IDs do not correspond to existing users/movies");
+		}
+	}
+	
+	@Override  //method to get a specific rating 
+	public String getRating(Long userID,Long movieID){
+		String result="";
+		if(movieIndex.containsKey(movieID) && userIndex.containsKey(userID)){  //user and movie must exist
+		for(int i=0;i<userIndex.get(userID).getRatings().size();i++){
+			Rating rating=userIndex.get(userID).getRatings().get(i);  //go through each user rating
+			if(movieID.equals(rating.getMovieID())){  //if it corresponds to the movie entered
+				result+=rating.toString();
+				break;  //user can only rate movie once, so when found we can exit loop
+			}
+		}
+		if (result.equals("")){   //no ratings were added to string
 			result="This user did not rate this movie";
 		}
-		System.out.println(result);
+		return result;
+		}
+		else{    //if user or movie doesnt exist
+			return null;
+		}
 	}
-	@Override
+	
+	@Override    //method to return a list of ratings for a movie 
 	public Movie getMovie(Long movieID) {
+		if(movieIndex.containsKey(movieID)){  //movie must exist
 		return movieIndex.get(movieID);
+		}
+		else{
+			return null;
+		}
 	}
 
-	@Override
+	@Override   //method to return a list of ratings for a user
 	public List<Rating> getUserRatings(Long userID) {
-		if (movieIndex.containsKey(userID)){
+		if (userIndex.containsKey(userID)){  //user must exist
 			return userIndex.get(userID).getRatings();
 		}
 		else{
@@ -170,64 +209,58 @@ public class MovieRecommenderAPI implements IMovieRecommender{
 	}
 
 	@Override
-	public List<Movie> getUserRecommendations(Long userID) {
+	public List<Movie> getUserRecommendations(Long userID) {       // uses similar user and returns movies they have rated but you havent
 		ArrayList<Movie> recommendations=new ArrayList<Movie>();
-		User user = userIndex.get(userID);
-		if(!getRatings().isEmpty() && !user.getRatings().isEmpty() ){
-			User smallest=user;
-			User largest=user;
-			int highestSum= Integer.MIN_VALUE;
-			User closestUser=user;
-			for (User entry:userIndex.values()){
-				if(!entry.equals(user)){
-					if (user.getRatings().size()>entry.getRatings().size()) {
-						smallest=entry;
-					}
-					else{
-						largest=entry;
-					}
+		User user = userIndex.get(userID);   //user we want recommendations for
+		if(!getRatings().isEmpty() && !user.getRatings().isEmpty() ){  //ratings must exist, and the user must have ratings (because if no user ratings then cant find similar user)
+			User smallest=user;   //variable for smallest user (based on no. ratings)
+			User largest=user;    //as above but for largest   , both set to user as base 
+			int highestSum= Integer.MIN_VALUE;   //most similar user will have high number for this variable, set to min starting so the first user number found will be set as the highest
+			User closestUser=user;   //most similar user set to user as base
+			for (User entry:userIndex.values()){    //for every user
+				if(!entry.equals(user)){   //similar user cant be the user
 					int sum=0;
-					boolean sameMoviesRated=false;
-					for(int i=0;i<smallest.getRatings().size();i++){
-						for (int j=0;j<largest.getRatings().size();j++){
-							if(smallest.getRatings().get(i).getMovieID()==largest.getRatings().get(j).getMovieID()){
-								sum+=smallest.getRatings().get(i).getRating()* largest.getRatings().get(j).getRating();
-								sameMoviesRated=true;
+					boolean sameMoviesRated=false;  //if both users have rated the movie in question
+					for(int i=0;i<user.getRatings().size();i++){   //goes through user ratings
+						for (int j=0;j<entry.getRatings().size();j++){    //goes through possible similar user ratings
+							if(user.getRatings().get(i).getMovieID()==entry.getRatings().get(j).getMovieID()){  //if ratings for the same movie
+								sum+=user.getRatings().get(i).getRating()* entry.getRatings().get(j).getRating();  //add in the product of the two ratings 
+								sameMoviesRated=true;  //both users have rated at least one same movie
 							}
 						}
 					}
-					if(highestSum==Integer.MIN_VALUE && sameMoviesRated){
-						highestSum=sum;
-						closestUser=entry;
+					if(highestSum==Integer.MIN_VALUE && sameMoviesRated){  //if the highest sum hasnt changed from the initial yet, and the possible similar has rated at least one same movie as user
+						highestSum=sum;   
+						closestUser=entry;    //set the closest user as the possible similar just tested
 					}
 					else{
-						if (highestSum<sum && sameMoviesRated){
+						if (highestSum<sum && sameMoviesRated){  //if the current sum is greater than the previous highest sum from previous closestUser found, and both users rated same movies
 							highestSum=sum;
 							closestUser=entry;
 						}
 					}
 				}
 			}
-			if(!closestUser.equals(user)){
-					ArrayList<Rating> allRatings=new ArrayList<Rating>(closestUser.getRatings());
-					Collections.sort(allRatings);
-					Collections.reverse(allRatings);
-					for (Rating entry:allRatings){
-						boolean alreadyRated=false;
-						for (Rating userEntry : user.getRatings()){
-							if (entry.getMovieID().equals(userEntry.getMovieID())) {
+			if(!closestUser.equals(user)){   //if a similar user was found (closestUser would equal user as initialised if not)  
+					ArrayList<Rating> allRatings=new ArrayList<Rating>(closestUser.getRatings());  
+					Collections.sort(allRatings);   //sort in accordance to rating
+					Collections.reverse(allRatings);  //high to low
+					for (Rating entry:allRatings){    
+						boolean alreadyRated=false;   //if user has already rated the movie the closest users rating applies to
+						for (Rating userEntry : user.getRatings()){   //go through each of the users ratings
+							if (entry.getMovieID().equals(userEntry.getMovieID())) {  //if both ratings are for same movie
 								alreadyRated=true;
 							}
 						}
-						if (!alreadyRated){
+						if (!alreadyRated){    //if the closest user has a movie rated that the user does not, we add the movie to the user's recommendations
 							recommendations.add(getMovie(entry.getMovieID()));
 						}
 					}
 
-					if(recommendations.size()>10){
+					if(recommendations.size()>10){      //only want 10 recommendations
 						return recommendations.subList(0, 10);
 					}
-					else if(recommendations.size()==0){
+					else if(recommendations.size()==0){   // no movies from closest user that user hasnt rated, so just show top ten general movies
 						System.out.println("This user has rated all recommendations from a similar user!\nFor now, these are the top rated movies:");
 						for(Movie movie:getTopTenMovies()){
 							System.out.println(movie.toString());
@@ -238,7 +271,7 @@ public class MovieRecommenderAPI implements IMovieRecommender{
 						return recommendations;
 					}
 			}
-			else{
+			else{   //if closestUser was still equal to user, then no similars found 
 				System.out.println("There are no similar users to this user to provide personalised recommendations!\nFor now, these are the top rated movies:");
 				for(Movie movie:getTopTenMovies()){
 					System.out.println(movie.toString());
@@ -246,67 +279,90 @@ public class MovieRecommenderAPI implements IMovieRecommender{
 				return null;
 			}
 		}
-		else if (!getRatings().isEmpty()){
+		else if (!getRatings().isEmpty()){   // if there are ratings , but  the user doesnt have any
 			System.out.println("Please add some ratings for this user to get personalised recommendations.\nFor now, these are the top rated movies:");
 			for(Movie movie:getTopTenMovies()){
 				System.out.println(movie.toString());
 			}
 			return null;
 		}
-		else{
+		else{   //if there are no ratings at all
 			System.out.println("Please add some ratings for this user, and other users, to get personalised recommendations.");
 			return null;
 		}
 
 	}
 
-	@Override
+	@Override   //method to return users in a map 
 	public Map<Long, User> getUsers() {
-
 		return userIndex;
 	}
 
-	@Override
+	@Override  //method to return movies in a map
 	public Map<Long, Movie> getMovies() {
 		return movieIndex;
 	}
-	@Override
+	
+	@Override     //method to return all ratings 
 	public ArrayList<Rating> getRatings() {
 		ArrayList<Rating> ratingIndex=new ArrayList<Rating>();
-		for(User user:userIndex.values()){
+		for(User user:userIndex.values()){   //goes through each user
 			for(Rating rating:user.getRatings()){
-				ratingIndex.add(rating);
+				ratingIndex.add(rating);     //adds each user rating to list
 			}
 		}
 		return ratingIndex;
 	}
 
-	@Override
+	@Override   //method to get the top ten movies going by average ratings
 	public List<Movie> getTopTenMovies() {
-		boolean anyRating=false;
-		if(!getRatings().isEmpty()){
-			anyRating=true;
-		}
-		if(anyRating){
+		if(!getRatings().isEmpty()){   //ratings exist
 			List<Movie> movies=new ArrayList<Movie> ();
-			for(Movie movie:getMovies().values()){
-				if(!movie.getRatings().isEmpty()){
-					movies.add(movie);
+			for(Movie movie:getMovies().values()){    //for each movie
+				if(!movie.getRatings().isEmpty()){   //if the movie has ratings
+					movies.add(movie);   //add movie to list
 				}
 			}
-			Collections.sort(movies);
-			Collections.reverse(movies);
-			if(movies.size()>10){
-				return movies.subList(0, 10);
+			Collections.sort(movies);   //sort the movies with ratings
+			Collections.reverse(movies);  //reverse to put highest--> lowest
+			if(movies.size()>10){      
+				return movies.subList(0, 10);    //return top ten if more than ten movies in list
 			}
 			else{
 				return movies;
 			}
 		}
 		else{
-			return null;
+			return null;   //return null if no ratings exist   
 		}
 	}
+
+	@Override
+	public List<Rating> getMovieRatings(Long id) {   //get ratings for movie by id
+		if (movieIndex.containsKey(id)){   //if movie exists
+			return movieIndex.get(id).getRatings();  //return ratings
+		}
+		else{
+			return null;  //if no movie exists
+		}
+	}
+
+	@Override  //gets the average rating of a movie
+	public String getAverageRating(Long id) {
+		if(movieIndex.containsKey(id)){  //movie must exist
+		if (!movieIndex.get(id).getRatings().isEmpty()){  //if movie has ratings
+		 return "The average rating is: "+movieIndex.get(id).getAverageRating();
+		}
+		else {
+			return "This movie has no ratings yet";
+		}
+		}
+		else{
+			return "This movie does not exist";
+		}
+
+	}
+
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -327,44 +383,4 @@ public class MovieRecommenderAPI implements IMovieRecommender{
 		serializer.write(); 
 
 	}
-
-
-
-
-
-	@Override
-	public List<Rating> getMovieRatings(Long id) {
-		if (movieIndex.containsKey(id)){
-			return movieIndex.get(id).getRatings();
-		}
-		else{
-			return null;
-		}
-	}
-
-	@Override
-	public String getMovieDetails(String title) {
-		String details="There are no movies with this title";
-		for (Movie entry: movieIndex.values()){
-			if(entry.getTitle().equalsIgnoreCase(title)){
-				details=entry.toString();
-			}
-
-		}
-		return details;
-	}
-
-	@Override
-	public void getAverageRating(Long id) {
-		if (!movieIndex.get(id).getRatings().isEmpty()){
-		System.out.println( movieIndex.get(id).getAverageRating());
-		}
-		else {
-			System.out.println("This movie has no ratings yet");
-		}
-
-	}
-
-
-
 }

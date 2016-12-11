@@ -3,6 +3,7 @@ package models;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 public  class Movie  implements Comparable<Movie>{
 	public static Long counter= 0l;
@@ -18,18 +19,21 @@ public  class Movie  implements Comparable<Movie>{
 	}
 
 
-	public void setRatings(List<Rating> ratings) {
-		this.ratings = ratings;
-	}
-
-
 	public String getTitle() {
 		return title;
 	}
 
 
 	public void setTitle(String title) {
+		if (title==""){  
+			throw new IllegalArgumentException("Error:Title String is empty");
+		}
+		else if(title==null){   
+			throw new NullPointerException("Error:Title is null");
+		}
+		else{
 		this.title = title;
+		}
 	}
 
 
@@ -39,7 +43,15 @@ public  class Movie  implements Comparable<Movie>{
 
 
 	public void setYear(String year) {
+		if (year==""){  
+			throw new IllegalArgumentException("Error:Year String is empty");
+		}
+		else if(year==null){   
+			throw new NullPointerException("Error:Year is null");
+		}
+		else{
 		this.year = year;
+		}
 	}
 
 
@@ -49,7 +61,15 @@ public  class Movie  implements Comparable<Movie>{
 
 
 	public void setUrl(String url) {
+		if (url==""){  
+			throw new IllegalArgumentException("Error:Url String is empty");
+		}
+		else if(url==null){   
+			throw new NullPointerException("Error:Url is null");
+		}
+		else{
 		this.url = url;
+		}
 	}
 
 
@@ -71,14 +91,10 @@ public  class Movie  implements Comparable<Movie>{
 		this.title = title;
 		this.year = year;
 		this.url = url;
+		counter++;
 	}
 	public Long getId() {
 		return id;
-	}
-
-
-	public void setId(Long id) {
-		this.id = id;
 	}
 
 
@@ -104,5 +120,23 @@ public  class Movie  implements Comparable<Movie>{
 	public int compareTo(Movie that) {
 	 return Double.compare(this.getAverageRating(),that.getAverageRating());
 	}
+	
+	  @Override
+	  public boolean equals(final Object obj)
+	  {
+	    if (obj instanceof Movie)
+	    {
+	      final Movie other = (Movie) obj;
+	      return Objects.equals(title,   other.title)
+	    	  && Objects.equals(id,other.id)
+	          &&  Objects.equals(year,    other.year)
+	          &&  Objects.equals(url,       other.url)
+	          &&  Objects.equals(ratings,    other.ratings);      
+	    }
+	    else
+	    {
+	      return false;
+	    }
+	  }
 
 }
